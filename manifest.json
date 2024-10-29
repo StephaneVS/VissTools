@@ -1,0 +1,25 @@
+{
+  "manifest_version": 3,
+  "name": "VissTools",
+  "version": "1.5.0",
+  "description": "Outils Visserie Service",
+  "icons": {
+    "32": "visserie.png",
+    "96": "visserie.png"
+  },
+  "action": {
+    "default_icons": {
+      "32": "visserie.png",
+      "96": "visserie.png"
+    },
+    "default_popup": "index.html",
+    "default_title": "Outils VS"
+  },
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
+  "permissions": [
+    "storage"
+  ]
+}
