@@ -26,12 +26,12 @@ function loadSettings() {
     email: "",
     checkCode: "",
     boBtnBar: false,
-    dashBtnBar: false
+    //dashBtnBar: false
   }, function(options) {
     setValue("#email", options.email),
     setValue("#checkCode", options.checkCode);
     setChecked("#backofficeBtns", options.boBtnBar);
-    setChecked("#dashboardBtns", options.dashBtnBar);
+    //setChecked("#dashboardBtns", options.dashBtnBar);
   });
 }
 
@@ -42,14 +42,14 @@ async function saveSettings() {
   const email = getValue("#email");
   const checkCode = parseInt(getValue("#checkCode")) || 0;
   let boBtnBar = getChecked("#backofficeBtns");
-  let dashBtnBar = getChecked("#dashboardBtns");
+  //let dashBtnBar = getChecked("#dashboardBtns");
   
   let statusText = "Options sauvegardées";
   let statusClass = "text-success";
 
   if (!await validateCode(email, checkCode)) {
     boBtnBar = false;
-    dashBtnBar = false;
+    //dashBtnBar = false;
     statusText = "Email non vérifié";
     statusClass = "text-warning";
   }
@@ -58,7 +58,7 @@ async function saveSettings() {
     email: email,
     checkCode: checkCode,
     boBtnBar: boBtnBar,
-    dashBtnBar: dashBtnBar
+    //dashBtnBar: dashBtnBar
   }, function() {
     const status = document.querySelector("#saveStatus");
     status.classList.toggle(statusClass);

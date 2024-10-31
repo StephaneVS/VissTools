@@ -1,6 +1,6 @@
 import { createElement } from "./dom.js";
 import { wsCall } from "./jason.js";
-import { shopList, vmList, version } from "./data.js";
+import { shopList, version } from "./data.js";
 
 let email = "";
 
@@ -251,8 +251,8 @@ chrome.storage.sync.get({
   if (options.boBtnBar) loadButtons("#boButtons", shopList, shopButton);
   else document.querySelector("#backOffice").style.display = "none";
   
-  if (options.dashBtnBar) loadButtons("#dashButtons", vmList, dashButton);
-  else document.querySelector("#dashBoard").style.display = "none";
+  /* if (options.dashBtnBar) loadButtons("#dashButtons", vmList, dashButton);
+  else document.querySelector("#dashBoard").style.display = "none"; */
 });
 
 // Get total units in warehouse
