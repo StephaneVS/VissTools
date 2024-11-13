@@ -1,8 +1,8 @@
 /**
  * Create DOM element
- * @param {string} type
- * @param {string} content
- * @param {object} attributes
+ * @param {string} type - Element type
+ * @param {string} content - Element content
+ * @param {object} [attributes={}] - Element attributes
  * @returns {HTMLElement}
  */
 const createElement = (type, content, attributes = {}) => {
@@ -21,7 +21,7 @@ export { createElement };
 
 /**
  * Clear child elements
- * @param {HTMLElement} container HTML element to clear
+ * @param {HTMLElement} container - HTML element to clear
  */
 const clearContent = (container) => {
   while (container.childNodes.length > 0) {
@@ -33,7 +33,7 @@ export { clearContent };
 
 /**
  * Clear alerts element
- * @param {HTMLElement|null} alert Alerts UI element
+ * @param {HTMLElement|null} alert - Alerts UI element
  */
 function clearAlert(alert) {
   if (!alert) alert = document.querySelector("#alerts");
@@ -42,9 +42,9 @@ function clearAlert(alert) {
 
 /**
  * Display a flash message
- * @param {string} message Message to display
- * @param {string} color Special color code for alert-* class
- * @param {number} timeoutSeconds Delay before clear alert (defaults to 5 secs)
+ * @param {string} message - Message to display
+ * @param {string} color - Special color code for alert-* class
+ * @param {number} [timeoutSeconds=5] - Delay before clear alert (defaults to 5 secs)
  */
 export function flash(message, color, timeoutSeconds = 5) {
   const flashMessage = createElement("div", message, {
@@ -60,7 +60,7 @@ export function flash(message, color, timeoutSeconds = 5) {
 
 /**
  * Return UI element value
- * @param {string} selector CSS selector
+ * @param {string} selector - CSS selector
  * @returns {string}
  */
 export function getValue(selector) {
@@ -69,7 +69,7 @@ export function getValue(selector) {
 
 /**
  * Return UI element checked state
- * @param {string} selector CSS selector
+ * @param {string} selector - CSS selector
  * @returns {boolean}
  */
 export function getChecked(selector) {
@@ -78,8 +78,8 @@ export function getChecked(selector) {
 
 /**
  * Set a UI element value
- * @param {string} selector CSS selector
- * @param {string} value Value to set
+ * @param {string} selector - CSS selector
+ * @param {string} [value=""] - Value to set
  */
 export function setValue(selector, value = "") {
   document.querySelector(selector).value = value;
@@ -87,8 +87,8 @@ export function setValue(selector, value = "") {
 
 /**
  * Set a UI element checked state
- * @param {string} selector CSS selector
- * @param {boolean} checked State to set
+ * @param {string} selector - CSS selector
+ * @param {boolean} [checked=false] - State to set
  */
 export function setChecked(selector, checked = false) {
   document.querySelector(selector).checked = checked;
