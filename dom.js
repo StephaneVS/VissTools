@@ -93,3 +93,15 @@ export function setValue(selector, value = "") {
 export function setChecked(selector, checked = false) {
   document.querySelector(selector).checked = checked;
 }
+
+/**
+ * Wire-up event handlers to UI elements
+ * @param {string} selector - CSS selector
+ * @param {string} event - Event name
+ * @param {object} callBack - Callback function
+ */
+export function handleEvent(selector, event, callBack) {
+  document
+    .querySelector(selector)
+    .addEventListener(event, callBack);
+}

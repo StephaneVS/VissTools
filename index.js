@@ -1,16 +1,17 @@
-import { createElement } from "./dom.js";
+import { createElement, getValue, handleEvent } from "./dom.js";
 import { wsCall } from "./jason.js";
 import { shopList, version } from "./data.js";
 
 let email = "";
 
 /**
- * Calback for building shop admin buttons
+ * Callback for building shop admin buttons
  * @param {object} item list item
  * @returns {object} button text and link
  */
 const shopButton = (item) => {
-  if (item.hidden) return null;
+  if (item.hidden)
+    return null;
   return {
     text: `B${item.id}`,
     link: `${item.url}/${item.admin}/index.php?controller=AdminLogin&redirect=AdminDashboard&email=${email}`,
@@ -29,19 +30,31 @@ const dashButton = (item) => {
   };
 };
 
+function loadShopSelect() {
+  const shopSelect = document.querySelector("#shopNo");
+  shopList.filter(s => !s.hidden).forEach(shop => {
+    const option = document.createElement("option");
+    option.value = `shop=${shop.id}`;
+    option.text = shop.url.split(".").slice(1).join(".");
+    shopSelect.options.add(option);
+  });
+}
+
 /**
  * Load a bar of buttons
- * @param {HTMLElement} container parent element
+ * @param {string} container parent element
  * @param {Array} list list of elements
  * @param {Function} callback function to build a button from list
  * @returns {void}
  */
 function loadButtons(container, list, callback) {
   const buttons = document.querySelector(container);
-  if (!buttons) return;
+  if (!buttons)
+    return;
   list.forEach((item) => {
     const button = callback(item);
-    if (!button) return;
+    if (!button)
+      return;
     const link = createElement("a", button.text, {
       href: button.link,
       class: "btn btn-outline-light btn-sm",
@@ -58,7 +71,7 @@ function loadButtons(container, list, callback) {
  * @param {string} onError default value
  * @returns {string} property value or default
  */
-function stringOrDefault(o, prop, onError = "") {
+function strval(o, prop, onError = "") {
   return o[prop] || onError;
 }
 
@@ -75,15 +88,15 @@ async function searchOrder() {
     return;
   }
   const result = document.querySelector("#orderResult");
-  result.innerHTML = "Recherche...";
+  result.innerHTML = 'Recherche&nbsp;<div class="spinner-border spinner-border-sm" role="status"></div>';
 
-  const refcmdResult = await wsCall({ prg: "REFCMD", reference: orderRef });
-  if (refcmdResult.hasOwnProperty("wsError")) {
-    result.innerHTML = refcmdResult.wsError;
+  const wsResult = await wsCall({ prg: "REFCMD", reference: orderRef });
+  if (wsResult.hasOwnProperty("wsError")) {
+    result.innerHTML = wsResult.wsError;
   } else {
     const attribs = { class: "list-group-item" };
-    const shopId = parseInt(stringOrDefault(refcmdResult, "shop", "")) || 0;
-    const idOrder = parseInt(stringOrDefault(refcmdResult, "order_id", "")) || 0;
+    const shopId = parseInt(strval(wsResult, "shop", "")) || 0;
+    const idOrder = parseInt(strval(wsResult, "order_id", "")) || 0;
     if (shopId === 0 || idOrder === 0) {
       result.innerHTML = '<p class="text-warning">Commande introuvable !</p>';
       return;
@@ -92,13 +105,15 @@ async function searchOrder() {
 
     const shopInfo = shopList.find((shop) => shop.id === shopId);
     const orderUrl = `${shopInfo.url}/${shopInfo.admin}/index.php?controller=AdminOrders&id_order=${idOrder}&vieworder`;
-    const tracking = stringOrDefault(refcmdResult, "tracking", "");
-    const tracking_url = stringOrDefault(refcmdResult, "tracking_url", "");
-    const relayId = stringOrDefault(refcmdResult, "relay_id", "");
-    const mpOrderId = stringOrDefault(refcmdResult, "marketplace_id", "");
+    const tracking = strval(wsResult, "tracking", "");
+    const tracking_url = strval(wsResult, "tracking_url", "");
+    const relayId = strval(wsResult, "relay_id", "");
+    const mpOrderId = strval(wsResult, "marketplace_id", "");
+
     const info = createElement("ul", "", {
       class: "list-group list-group-flush",
     });
+
     info.appendChild(
       createElement(
         "li",
@@ -106,31 +121,23 @@ async function searchOrder() {
         attribs
       )
     );
+
     info.appendChild(
       createElement(
         "li",
-        `Etat : ${stringOrDefault(refcmdResult, "status", "")}`,
+        `Etat : ${strval(wsResult, "status", "")}`,
         attribs
       )
     );
+    
     info.appendChild(
       createElement(
         "li",
-        `Transporteur : ${stringOrDefault(refcmdResult, "carrier", "")}`,
+        `Transporteur : ${strval(wsResult, "carrier", "")}`,
         attribs
       )
     );
-    let link;
-    if (tracking_url !== "") {
-      link = `<a href="${tracking_url}" target="_blank">${tracking}</a>`;
-    }
-    info.appendChild(
-      createElement(
-        "li",
-        `No Suivi : ${ link ? link : tracking }`,
-        attribs
-      )
-    );
+
     if (relayId !== "") {
       info.appendChild(
         createElement(
@@ -140,6 +147,18 @@ async function searchOrder() {
         )
       );
     }
+    
+    let link;
+    if (tracking_url !== "")
+      link = `<a href="${tracking_url}" target="_blank">${tracking}</a>`;
+    info.appendChild(
+      createElement(
+        "li",
+        `No Suivi : ${ link ? link : tracking }`,
+        attribs
+      )
+    );
+    
     if (mpOrderId !== "") {
       info.appendChild(
         createElement(
@@ -149,26 +168,56 @@ async function searchOrder() {
         )
       );        
     }
+
     info.appendChild(
       createElement(
         "li",
-        `AR No : ${stringOrDefault(refcmdResult, "ar", "")}`,
+        `AR No : ${strval(wsResult, "ar", "")}`,
         attribs
       )
     );
+
     info.appendChild(
       createElement(
         "li",
-        `Client No : ${stringOrDefault(refcmdResult, "ccl", "")}`,
+        `Client No : ${strval(wsResult, "ccl", "")}`,
         attribs
       )
     );
-    const others = stringOrDefault(refcmdResult, "others", "");
+
+    const bl = strval(wsResult, "bl", "");
+    if (bl !== "") {
+      info.appendChild(
+        createElement(
+          "li",
+          `BL No : ${bl}`,
+          attribs
+        )
+      )
+    }
+
+    const delivery = strval(wsResult, "delivery_date", "");
+    if (delivery !== "") {
+      info.appendChild(
+        createElement(
+          "li",
+          `Livrée le : ${delivery}`,
+          attribs
+        )
+      )
+    }
+
+    const others = strval(wsResult, "others", "");
     if (others !== "") {
       info.appendChild(
-        createElement("li", `⚠️ Doublon : ${others} ⚠️`, attribs)
+        createElement(
+          "li",
+          `⚠️ Doublon : ${others} ⚠️`,
+          attribs
+        )
       );
     }
+
     result.appendChild(info);
   }
 }
@@ -190,22 +239,24 @@ async function searchProduct() {
 
   let content = "";
 
-  const stockReel = await wsCall({ prg: "stockreel", art: reference });
-  if (stockReel.hasOwnProperty("wsError")) {
-    content = stockReel.wsError;
-  } else if (stockReel.result.toLowerCase() === "ko") {
-    content = `<p class="text-warning">${stockReel.message}</p>`;
+  const wsResult = await wsCall({ prg: "stockreel", art: reference });
+  if (wsResult.hasOwnProperty("wsError")) {
+    content = wsResult.wsError;
+  } else if (!wsResult.result) {
+    content = "<p class='text-warning'>Pas de réponse de PVX</p>";
+  } else if (wsResult.result.toLowerCase() === "ko") {
+    content = `<p class="text-warning">${wsResult.message}</p>`;
   } else {
-    const stock = parseInt(stockReel.sr) || 0;
-    const delay = parseInt(stockReel.delai) || 0;
+    const stock = parseInt(wsResult.sr) || 0;
+    const delay = parseInt(wsResult.delai) || 0;
     content = `Stock Réel <a href="https://www.vis-express.fr/r/${reference}" class="btn btn-dark btn-sm" title="Afficher sur la boutique" target="_blank"><i class="bi bi-shop"></i></a> : `;
     const color = stock > 0 ? "text-bg-success" : "text-bg-warning";
     content += (stock !== 0) 
-      ? `<span class="badge rounded-pill ${color}">${stockReel.sr} pièces</span>` 
+      ? `<span class="badge rounded-pill ${color}">${wsResult.sr} pièces</span>` 
       : `<span class="badge rounded-pill ${color}">En rupture</span> (Délai : ${delay} jours)`;
-    if (stockReel.packs) {
+    if (wsResult.packs) {
       content += " soit";
-      stockReel.packs.forEach(pack => {
+      wsResult.packs.forEach(pack => {
         if (pack.units > 1) 
           content += `&nbsp;<span class="badge rounded-pill text-bg-secondary">${pack.stock} x ${pack.units} pièces</span>`;
       });
@@ -215,16 +266,122 @@ async function searchProduct() {
 }
 
 /**
+ * Validate BSF file content
+ * @param {string} fileContent - content of BSF text file
+ * @returns {object}
+ */
+async function validateBSF(fileContent) {
+  const alias = new Map()
+    .set("client", "ccl")
+    .set("commentaire", "comment");
+  const data = { 
+    ccl: "",
+    bl: "",
+    motif: "",
+    attention: "",
+    comment: "",
+    rows: "",
+    email: userOptions.email,
+    checkCode: md5(userOptions.checkCode)
+  };
+  const rows = [];
+  let readingRows = false;
+  fileContent.split('\n').forEach(row => {
+    if (row === "") return;
+    const [ name, value ] = row.split(":").map(item => item.trim());
+    if (readingRows) {
+      rows.push(`${name.replace("- ", "")}~${value}`);
+      return;
+    }
+    let k;
+    if (alias.has(name.toLowerCase())) k = alias.get(name.toLowerCase());
+    else k = name.toLowerCase();
+    if (name.toLowerCase() === "produits") readingRows = true;
+    else data[k] = value;
+  });
+  if (rows.length > 0) data.rows = rows.join("|");
+  const wsResult = await wsCall({ prg: "VSP492", action: "validate", ...data });
+  if (wsResult.valid === "ok") {
+    return { valid: true, data }
+  } else {
+    return { valid: false, message: wsResult.message };
+  }
+}
+
+/**
+ * Submit BSF Via webservice
+ * @returns {void}
+ */
+async function submitBSF() {
+  const requestData = getValue("#dataBSF") || "";
+  if (requestData === "") return;
+  const wsResult = await wsCall({ prg: "VSP492", action: "submit" }, requestData);
+  const success = wsResult.valid === "ok";
+  const message = success
+    ? "BSF enregistré"
+    : `Erreur de validation : ${wsResult.message}`;
+  const fileContents = document.querySelector("#bsfContent");
+  const result = `<span class="text-${ success ? "success" : "danger" }"><strong>${message}</strong></span>`;
+  fileContents.innerHTML = result;
+  document.querySelector("#submitBSFBtn").style.display = "none";
+}
+
+/**
+ * Open and parse BSF text file
+ * @returns {void}
+ */
+async function openBSFFile() {
+  let fileHandle;
+  try {
+    [ fileHandle ] = await window.showOpenFilePicker();
+  } catch (error) { }
+  if (!fileHandle) return;
+
+  const file = await fileHandle.getFile();
+  const fileContent = await file.text();
+  const bsf = await validateBSF(fileContent);
+  let result;
+  if (bsf.valid) {
+    result = `
+    <p>
+    Client : ${bsf.data.ccl}, BL No : ${bsf.data.bl}
+    <br>Motif : ${bsf.data.motif}
+    ${bsf.data.attention ? "<br>A l'attention : " + bsf.data.attention : "" }
+    ${bsf.data.comment ? "<br>Commentaire : " + bsf.data.comment : "" }
+    <br>References | Quantités :
+    </p>
+    <ul>${ bsf.data.rows.split("|").map(row => `<li>${row.split("~")[0]} | ${row.split("~")[1]}</li>`).join("")}</ul>
+    <input type="hidden" id="dataBSF" value="${new URLSearchParams(bsf.data)}">
+    `;
+    document.querySelector("#submitBSFBtn").style.display = "block";
+  } else {
+    result = `<span class="text-danger"><strong>Validation impossible !</strong> ${bsf.message}</span>`
+  }
+  const fileContents = document.querySelector("#bsfContent");
+  fileContents.innerHTML = result;
+}
+
+/**
  * Get warehouse stocks
  */
 async function getStock() {
   const stock = document.querySelector("#stock");
-  const infoscreen = await wsCall({ prg: "INFOSCREEN" });
-  if (infoscreen.hasOwnProperty("nbr_pieces_dsp")) {
-    stock.innerHTML = `<strong>${infoscreen.nbr_pieces_dsp} pièces en entrepôt</strong>`;
-  }
+  const wsResult = await wsCall({ prg: "INFOSCREEN" });
+  if (wsResult.hasOwnProperty("nbr_pieces_dsp"))
+    stock.innerHTML = `<strong>${wsResult.nbr_pieces_dsp} pièces en entrepôt</strong>`;
 }
 
+/**
+ * Open a new tab to the client messages web page
+ */
+function showMessages() {
+  const shop = document.querySelector("#shopNo").value;
+  window.open(`https://www.vis-express.com/jason2.php?prg=MSGCLI&${shop}`);
+}
+
+/**
+ * Open options panel
+ */
 function optionsPage() {
   if (chrome.runtime.openOptionsPage) {
     chrome.runtime.openOptionsPage();
@@ -234,39 +391,45 @@ function optionsPage() {
 }
 
 /**
- * Main routine
+ * Main app
  */
 
 // Version label
 document.querySelector("h1").title = `Version ${version}`;
 
-// Get user preferences
-chrome.storage.sync.get({
+// Get user options
+const userOptions = await chrome.storage.sync.get({
   email: "",
   checkCode: "",
   boBtnBar: false,
-  dashBtnBar: false
-}, function(options) {
-
-  if (options.boBtnBar) loadButtons("#boButtons", shopList, shopButton);
-  else document.querySelector("#backOffice").style.display = "none";
-  
-  /* if (options.dashBtnBar) loadButtons("#dashButtons", vmList, dashButton);
-  else document.querySelector("#dashBoard").style.display = "none"; */
+  msgCmd: false,
+  /* dashBtnBar: false */
 });
+
+loadShopSelect()
+
+if (userOptions.boBtnBar) {
+  loadButtons("#boButtons", shopList, shopButton);
+} else {
+  document.querySelector("#backOffice").style.display = "none";
+}
+
+if (!userOptions.msgCmd)
+  document.querySelector("#clientMsgs").style.display = "none";
+
+/*if (userOptions.checkCode === "")
+  document.querySelector("#formBSF").style.display = "none"; */
+
+/* if (userOptions.dashBtnBar) loadButtons("#dashButtons", vmList, dashButton);
+else document.querySelector("#dashBoard").style.display = "none"; */
 
 // Get total units in warehouse
 await getStock();
 
 // Wire-up events
-document
-  .querySelector("#searchOrderBtn")
-  .addEventListener("click", searchOrder);
-
-document
-  .querySelector("#searchProductBtn")
-  .addEventListener("click", searchProduct);
-
-document
-  .querySelector("#optionsBtn")
-  .addEventListener("click", optionsPage);
+handleEvent("#searchOrderBtn", "click", searchOrder);
+handleEvent("#searchProductBtn", "click", searchProduct);
+/*handleEvent("#openBSFBtn", "click", openBSFFile)
+handleEvent("#submitBSFBtn", "click", submitBSF);*/
+handleEvent("#showMessagesBtn", "click", showMessages);
+handleEvent("#optionsBtn", "click", optionsPage);

@@ -2,3 +2,4 @@ chrome-store
 .jshintrc
 data.vmlist.js
 visstools-*.zip
+.idea/*
