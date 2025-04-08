@@ -81,7 +81,8 @@ function strval(o, prop, onError = "") {
  */
 async function searchOrder() {
   const psOrderId = document.querySelector("#psOrderId");
-  if (!psOrderId) return;
+  if (!psOrderId) 
+    return;
   const orderRef = psOrderId.value;
   if (orderRef === "") {
     alert("Veuillez saisir un no de commande");
@@ -94,7 +95,9 @@ async function searchOrder() {
   if (wsResult.hasOwnProperty("wsError")) {
     result.innerHTML = wsResult.wsError;
   } else {
-    const attribs = { class: "list-group-item" };
+    const attribs = {
+      class: "list-group-item"
+    };
     const shopId = parseInt(strval(wsResult, "shop", "")) || 0;
     const idOrder = parseInt(strval(wsResult, "order_id", "")) || 0;
     if (shopId === 0 || idOrder === 0) {
@@ -111,7 +114,7 @@ async function searchOrder() {
     const mpOrderId = strval(wsResult, "marketplace_id", "");
 
     const info = createElement("ul", "", {
-      class: "list-group list-group-flush",
+      class: "list-group list-group-flush"
     });
 
     info.appendChild(
@@ -197,11 +200,12 @@ async function searchOrder() {
     }
 
     const delivery = strval(wsResult, "delivery_date", "");
+    const delay = strval(wsResult, "delivery_delay", "");
     if (delivery !== "") {
       info.appendChild(
         createElement(
           "li",
-          `Livrée le : ${delivery}`,
+          `Livrée le : ${delivery} - ${delay}`,
           attribs
         )
       )
@@ -429,7 +433,7 @@ await getStock();
 // Wire-up events
 handleEvent("#searchOrderBtn", "click", searchOrder);
 handleEvent("#searchProductBtn", "click", searchProduct);
-/*handleEvent("#openBSFBtn", "click", openBSFFile)
-handleEvent("#submitBSFBtn", "click", submitBSF);*/
+/* handleEvent("#openBSFBtn", "click", openBSFFile) */
+/* handleEvent("#submitBSFBtn", "click", submitBSF); */
 handleEvent("#showMessagesBtn", "click", showMessages);
 handleEvent("#optionsBtn", "click", optionsPage);
