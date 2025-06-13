@@ -77,4 +77,4 @@ export const shopList = [
   }
 ];
 
-export const version = "1.7.0";
+export const version = "1.8.0";

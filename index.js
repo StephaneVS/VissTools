@@ -76,6 +76,41 @@ function strval(o, prop, onError = "") {
 }
 
 /**
+ * Open WEBCLI page in a new tab
+ * @returns {void}
+ */
+function searchClient() {
+  const cclId = document.querySelector("#cclId");
+  if (!cclId) 
+    return;
+  let email = cclId.value.trim();
+  if (email === "") {
+    alert("Veuillez saisir un no de client ou un e-mail !");
+    return;
+  }
+  let ccl = 0;
+  if (!isNaN(email)) {
+    ccl = parseInt(email) || 0;
+    if (ccl <= 0 || ccl > 999999) {
+      alert("Veuillez saisir un no de client valide !");
+      return;
+    }
+    email = "";
+  }
+  const withInvoices = document.querySelector("#withInvoices").checked;
+  const withBlog = document.querySelector("#withBlog").checked;
+  const clientUrl = new URLSearchParams({
+    prg: "WEBCLI",
+    pass: "ATH54JK6FG8ES5V6H4JJK85HHAZDFENA",
+    ccl,
+    email,
+    blog: withBlog ? "1" : "0",
+    invoices: withInvoices ? "1" : "0"
+  }).toString();
+  window.open(`https://www.vis-express.com/jason2.php?${clientUrl}`, "_blank");
+}
+
+/**
  * Search order reference using Jason WS
  * @returns {void}
  */
@@ -206,7 +241,7 @@ async function searchOrder() {
         createElement(
           "li",
           `Livrée le : ${delivery} - ${delay}`,
-          attribs
+          { class: attribs.class + ( delay.includes("OK") ? "" : " text-danger" ) }
         )
       )
     }
@@ -431,6 +466,7 @@ else document.querySelector("#dashBoard").style.display = "none"; */
 await getStock();
 
 // Wire-up events
+handleEvent("#searchClientBtn", "click", searchClient);
 handleEvent("#searchOrderBtn", "click", searchOrder);
 handleEvent("#searchProductBtn", "click", searchProduct);
 /* handleEvent("#openBSFBtn", "click", openBSFFile) */
