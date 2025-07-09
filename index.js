@@ -79,7 +79,7 @@ function strval(o, prop, onError = "") {
  * Open WEBCLI page in a new tab
  * @returns {void}
  */
-function searchClient() {
+async function searchClient() {
   const cclId = document.querySelector("#cclId");
   if (!cclId) 
     return;
@@ -97,6 +97,7 @@ function searchClient() {
     }
     email = "";
   }
+  const userOptions = await getUserOptions();
   const withInvoices = document.querySelector("#withInvoices").checked;
   const withBlog = document.querySelector("#withBlog").checked;
   const clientUrl = new URLSearchParams({
@@ -105,7 +106,8 @@ function searchClient() {
     ccl,
     email,
     blog: withBlog ? "1" : "0",
-    invoices: withInvoices ? "1" : "0"
+    invoices: withInvoices ? "1" : "0",
+    gs: userOptions.useGCS ? "1" : "0"
   }).toString();
   window.open(`https://www.vis-express.com/jason2.php?${clientUrl}`, "_blank");
 }
@@ -430,6 +432,20 @@ function optionsPage() {
 }
 
 /**
+ * Return user options
+ * @returns { Promise<{ email: string, checkCode: string, boBtnBar: boolean, msgCmd: boolean, useGCS: boolean }> }
+ */
+async function getUserOptions() {
+  return await chrome.storage.sync.get({
+    email: "",
+    checkCode: "",
+    boBtnBar: false,
+    msgCmd: false,
+    useGCS: false,
+  });
+}
+
+/**
  * Main app
  */
 
@@ -437,13 +453,7 @@ function optionsPage() {
 document.querySelector("h1").title = `Version ${version}`;
 
 // Get user options
-const userOptions = await chrome.storage.sync.get({
-  email: "",
-  checkCode: "",
-  boBtnBar: false,
-  msgCmd: false,
-  /* dashBtnBar: false */
-});
+const userOptions = await getUserOptions();
 
 loadShopSelect()
 
@@ -459,14 +469,17 @@ if (!userOptions.msgCmd)
 /*if (userOptions.checkCode === "")
   document.querySelector("#formBSF").style.display = "none"; */
 
-/* if (userOptions.dashBtnBar) loadButtons("#dashButtons", vmList, dashButton);
-else document.querySelector("#dashBoard").style.display = "none"; */
-
 // Get total units in warehouse
 await getStock();
 
 // Wire-up events
-handleEvent("#searchClientBtn", "click", searchClient);
+if (userOptions.checkCode !== "") {
+  handleEvent("#searchClientBtn", "click", searchClient);
+} else {
+  document.querySelector("#cclId").disabled = true;
+  document.querySelector("#cclId").placeholder = "Réservé aux salariés VS";
+  document.querySelector("#searchClientBtn").disabled = true;
+}
 handleEvent("#searchOrderBtn", "click", searchOrder);
 handleEvent("#searchProductBtn", "click", searchProduct);
 /* handleEvent("#openBSFBtn", "click", openBSFFile) */
