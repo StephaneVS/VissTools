@@ -446,6 +446,34 @@ async function getUserOptions() {
 }
 
 /**
+ * Handler ENTER key
+ * @param {object} e -event object
+ * @returns {void}
+ */
+function handleEnter(e) {
+  if (e.key !== "Enter")
+    return;
+
+  let reset = true;
+  switch (e.target.id) {
+    case "cclId":
+      searchClient();
+      break;
+    case "psOrderId":  
+      searchOrder();
+      break;
+    case "refProduct":
+      searchProduct();
+    default:
+      reset = false;
+  }
+  if (reset) {
+    e.target.value = "";
+    e.target.focus();
+  }
+}
+
+/**
  * Main app
  */
 
@@ -475,14 +503,21 @@ await getStock();
 // Wire-up events
 if (userOptions.checkCode !== "") {
   handleEvent("#searchClientBtn", "click", searchClient);
+  handleEvent("#cclId", "keypress", handleEnter);
 } else {
   document.querySelector("#cclId").disabled = true;
   document.querySelector("#cclId").placeholder = "Réservé aux salariés VS";
   document.querySelector("#searchClientBtn").disabled = true;
 }
+
 handleEvent("#searchOrderBtn", "click", searchOrder);
+handleEvent("#psOrderId", "keypress", handleEnter);
+
 handleEvent("#searchProductBtn", "click", searchProduct);
-/* handleEvent("#openBSFBtn", "click", openBSFFile) */
-/* handleEvent("#submitBSFBtn", "click", submitBSF); */
+handleEvent("#refProduct", "keypress", handleEnter);
+
 handleEvent("#showMessagesBtn", "click", showMessages);
 handleEvent("#optionsBtn", "click", optionsPage);
+
+/* handleEvent("#openBSFBtn", "click", openBSFFile) */
+/* handleEvent("#submitBSFBtn", "click", submitBSF); */
